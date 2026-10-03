@@ -52,7 +52,52 @@ export function clean(raw) {
     .replace(/\b2८3\s*=\s*6/gi, '2 × 3 = 6')
     .replace(/\b32\s*=\s*6/gi, '3 × 2 = 6')
     .replace(/\b3c1\s*=\s*3/gi, '3 × 1 = 3')
-    .replace(/\bREA\b/g, '2 × 2 = 4');
+    .replace(/\bREA\b/g, '2 × 2 = 4')
+    // Fix jammed header lines like "80MMaximum Time:" or "80MTime:"
+    .replace(/(\d+M)(Maximum\s+Time)/gi, '$1  $2')
+    .replace(/(\d+M)(Time\s*:)/gi, '$1  $2')
+    .replace(/(Maximum\s+Marks\s*:\s*\d+M)(Maximum\s+Time)/gi, '$1  $2');
+
+  // ── Stitch broken equation fragments ──────────────────────────────────
+  // Word equations (OMML) are dropped by mammoth leaving blank lines.
+  // Pattern: short non-heading line + 2+ blank lines + continuation fragment.
+  // We mark the gap with [?] and join the pieces into one question line.
+  const rawLines = text.split('\n');
+  const stitched = [];
+  let si = 0;
+  while (si < rawLines.length) {
+    const line = rawLines[si];
+    const trimmed = line.trim();
+    if (!trimmed) { si++; continue; }
+
+    // Count blank lines after current
+    let blanks = 0, j = si + 1;
+    while (j < rawLines.length && !rawLines[j].trim()) { blanks++; j++; }
+    const nextLine = j < rawLines.length ? rawLines[j].trim() : '';
+
+    const isFragmentLine = trimmed.length < 70 &&
+      !/^\d+[.)]\s/.test(trimmed) &&
+      !/^[IVXLCDM]+[.):\s]/i.test(trimmed) &&
+      !/^Section\s*[-–]?\s*[A-Z]\b/i.test(trimmed) &&
+      !/^Part\s*[-–]?\s*[A-Z]\b/i.test(trimmed) &&
+      !/^(Maximum|Marks|Sub|Time|Class)\s*:/i.test(trimmed);
+
+    const isContinuationLine = nextLine.length > 0 &&
+      !/^\d+[.)]\s/.test(nextLine) &&
+      !/^[IVXLCDM]+[.):\s]/i.test(nextLine) &&
+      !/^Section\s*[-–]?\s*[A-Z]\b/i.test(nextLine) &&
+      // Must start with lowercase or with specific continuation words — not a fresh imperative
+      (/^[a-z(]/.test(nextLine) || /^(then|and|prove\s+that|to\s+coincide|or\s+)\b/i.test(nextLine));
+
+    if (isFragmentLine && blanks >= 2 && isContinuationLine) {
+      stitched.push(trimmed + ' [?] ' + nextLine);
+      si = j + 1;
+    } else {
+      stitched.push(line);
+      si++;
+    }
+  }
+  text = stitched.join('\n');
 
   const out = []; let k = '', inT = false;
   text.split('\n').forEach(r => {
@@ -70,7 +115,9 @@ export function clean(raw) {
     if (/^\d+\s*M$/i.test(l) && k === 'h') { out[last] += '   ' + l; k = ''; return; }
 
     const isRoman = RM.test(l);
-    if (isRoman || PART.test(l)) {
+    // Section-A / Section-B / Section-C style headings (Maths/Junior College format)
+    const isSectionHead = /^Section\s*[-–]?\s*[A-Z]\b/i.test(l);
+    if (isRoman || PART.test(l) || isSectionHead) {
       inT = false;
       const mk = l.match(MK), t = (mk ? l.slice(0, mk.index) : l).trim().replace(/\s+/g, ' ');
       out.push(mk ? t + '   ' + mk[1].replace(/\s+/g, ' ') : t); k = 'h'; return;
@@ -118,6 +165,8 @@ export function blocks(txt, images, lineOffset = 0) {
     const hm = l.match(/^([IVXLCDM]+)([.):\s]|\s*$)/i);
     const mk = l.match(MK);
     let isH = PART.test(l);
+    // Section-A / Section-B style (Maths / Junior College format)
+    if (!isH && /^Section\s*[-–]?\s*[A-Z]\b/i.test(l)) isH = true;
     if (!isH && hm) {
       const romanStr = hm[1].toUpperCase();
       if (ROM[romanStr]) {
@@ -283,14 +332,22 @@ export function splitPapers(t) {
     if (ch[0].trim()) p.school = ch[0].trim();
     H.forEach((x, j) => {
       let any = false;
-      if ((m = x.match(/Class\s*:\s*(\S+)\s+(.*?)\s+Marks\s*:\s*(\S+)/i))) { p.cls = m[1]; p.campus = m[2]; p.marks = m[3]; any = true; }
-      else if ((m = x.match(/Sub\s*:\s*(\S+)\s+(.*?)\s+Time\s*:\s*(.+?)\s*$/i))) { p.sub = m[1]; p.exam = m[2]; p.time = m[3]; any = true; }
+      // Fix jammed "80MMaximum Time:" before matching
+      const xf = x
+        .replace(/(\d+M)(Maximum\s+Time)/gi, '$1  $2')
+        .replace(/(\d+M)(Time\s*:)/gi, '$1  $2');
+      if ((m = xf.match(/Class\s*:\s*(\S+)\s+(.*?)\s+Marks\s*:\s*(\S+)/i))) { p.cls = m[1]; p.campus = m[2]; p.marks = m[3]; any = true; }
+      else if ((m = xf.match(/Sub\s*:\s*(\S+)\s+(.*?)\s+Time\s*:\s*(.+?)\s*$/i))) { p.sub = m[1]; p.exam = m[2]; p.time = m[3]; any = true; }
       else {
-        if ((m = x.match(/Class\s*:\s*(\S+)/i))) { p.cls = m[1]; any = true; }
-        if ((m = x.match(/Marks\s*:\s*(\S+)/i))) { p.marks = m[1]; any = true; }
-        if ((m = x.match(/Sub(?:ject)?\s*:\s*(\S+)/i))) { p.sub = m[1]; any = true; }
-        if ((m = x.match(/Time\s*:\s*(.+?)\s*$/i))) { p.time = m[1]; any = true; }
+        if ((m = xf.match(/Class\s*:\s*(\S+)/i))) { p.cls = m[1]; any = true; }
+        if ((m = xf.match(/(?:Maximum\s+)?Marks\s*:\s*(\S+)/i))) { p.marks = m[1]; any = true; }
+        if ((m = xf.match(/Sub(?:ject)?\s*:\s*(\S+)/i))) { p.sub = m[1]; any = true; }
+        if ((m = xf.match(/(?:Maximum\s+)?Time\s*:\s*(.+?)\s*$/i))) { p.time = m[1]; any = true; }
         if (/^\s*PAPER\s*-?\s*\d/i.test(x)) { paper = x.trim().replace(/\s+/g, ' '); any = true; }
+        // Exam name patterns: "Term-I Exams (MEC-I)", "UNIT - II", "SA-I" etc.
+        if (!any && /^(term|unit|sa[-\s]|summative|formative|annual|half|pre)/i.test(x.trim())) {
+          p.exam = x.trim(); any = true;
+        }
       }
       if (any) used = j + 1; else if (!x.trim() && used === j) used = j + 1;
     });
