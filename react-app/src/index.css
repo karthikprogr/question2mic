@@ -1,0 +1,637 @@
+/* =============================================
+   GLOBAL CSS DESIGN SYSTEM
+   Question Paper Maker – React Edition
+   ============================================= */
+
+/* ---------- CSS Variables / Tokens ---------- */
+:root {
+  --bg: #f3efe6;
+  --card: #fffdf8;
+  --ink: #23262b;
+  --mute: #6b6f76;
+  --line: #d9d2c3;
+  --ac: #1f4e5f;
+  --acx: #fff;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1d20;
+    --card: #25282c;
+    --ink: #ece8df;
+    --mute: #a1a5ab;
+    --line: #3a3e44;
+    --ac: #7fc0d4;
+    --acx: #10262e;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1b1d20;
+  --card: #25282c;
+  --ink: #ece8df;
+  --mute: #a1a5ab;
+  --line: #3a3e44;
+  --ac: #7fc0d4;
+  --acx: #10262e;
+}
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px 'Nunito Sans', system-ui, sans-serif;
+}
+
+/* ---------- Layout ---------- */
+.wrap {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 16px;
+  padding: 16px;
+  max-width: 1500px;
+  margin: auto;
+}
+@media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+
+/* ---------- Panel / Card ---------- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+/* ---------- Typography ---------- */
+h1 { font: 700 22px Lora, serif; margin: 0 0 2px; }
+h2 { font: 600 16px Lora, serif; margin: 0 0 8px; }
+.s {
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+/* ---------- Form elements ---------- */
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin: 8px 0 3px;
+  color: var(--mute);
+}
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ---------- Buttons ---------- */
+button {
+  padding: 9px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--ac);
+  background: var(--ac);
+  color: var(--acx);
+  font: 600 14px 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  margin: 6px 6px 0 0;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+button:hover { opacity: 0.88; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button.g { background: transparent; color: var(--ac); }
+
+/* ---------- Focus ---------- */
+/* Apply focus ring globally but NOT inside the editable paper surfaces */
+:focus-visible:not(.cp[contenteditable] *):not(.sheet-body[contenteditable] *):not(.cp[contenteditable]):not(.sheet-body[contenteditable]) {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+
+/* ---------- Textarea ---------- */
+textarea#txt {
+  height: 340px;
+  font: 13px/1.5 ui-monospace, Consolas, monospace;
+  resize: vertical;
+}
+
+/* ---------- Details/summary ---------- */
+details { font-size: 13px; color: var(--mute); }
+details pre { white-space: pre-wrap; margin: 6px 0; font-size: 12px; }
+
+/* ---------- Warnings ---------- */
+#warn {
+  color: #b3261e;
+  font-weight: 600;
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+/* ---------- Sheet / print preview ---------- */
+.sheetbox { overflow-x: auto; }
+.pl { font-size: 12px; color: var(--mute); margin: 4px 0; }
+
+.sheet {
+  width: 297mm;
+  height: 210mm;
+  padding: 8mm 10mm;
+  margin: 0 auto 14px;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  font-family: Cambria, Lora, Georgia, serif;
+  font-size: var(--fs, 12px);
+  line-height: 1.3;
+  display: grid;
+}
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.cp { padding-right: 5mm; }
+.cp + .cp { padding: 0 0 0 5mm; border-left: 1px dashed #000; }
+
+/* ---------- Header elements ---------- */
+.h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.9em;
+  margin: 0 0 6px;
+  letter-spacing: 0.3px;
+}
+.h1 img { height: 2.2em; }
+.h2 { display: flex; justify-content: space-between; font-weight: 700; margin: 2px 0; }
+.h3 { text-align: center; font-weight: 700; margin: 2px 0; }
+.h4 {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #000;
+  margin-bottom: 5px;
+}
+
+/* ---------- Questions ---------- */
+.sec { display: flex; justify-content: space-between; font-weight: 700; margin-top: 6px; }
+.q { display: flex; gap: 6px; margin: 1px 0; }
+.q .n { min-width: 14px; }
+.opt { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-left: 20px; margin: 1px 0; }
+.m { width: 100%; border-collapse: collapse; }
+.m th { font-weight: 700; text-align: left; padding-left: 20px; }
+.m td { padding: 1px 0 1px 20px; }
+.m td.br { text-align: right; padding: 0; width: 40px; white-space: nowrap; }
+.m td:last-child { width: 45%; }
+.im { text-align: center; margin: 6px 0; }
+.im img { max-width: 70%; max-height: 38mm; }
+.ln { border-bottom: 1px solid #000; height: 7mm; margin-left: 20px; }
+
+/* ---------- Portrait sheet ---------- */
+.sheet.pt { width: 210mm; height: 297mm; padding: 12mm 14mm; }
+
+/* ---------- Print media ---------- */
+@media print {
+  body { background: #fff; }
+  .wrap { display: block; padding: 0; max-width: none; }
+  .noprint { display: none !important; }
+  .sheet { box-shadow: none; margin: 0; break-after: page; }
+  .sheetbox { overflow: visible; }
+}
+
+/* ---------- Paper styles ---------- */
+.st-box .hdr { border: 1.5px solid #000; padding: 4px 6px; margin-bottom: 6px; }
+.st-box .h4 { border-bottom: 0; margin-bottom: 0; }
+.st-line .sec { border-bottom: 1px solid #000; padding-bottom: 1px; }
+.st-shade .sec {
+  background: #e4e4e4;
+  padding: 1px 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Full border box style (College format, matching Image 2) */
+.st-border {
+  padding: 6mm 7mm;
+}
+
+/* ── Landscape: two side-by-side copies, NO individual boxes, just a dashed centre line ── */
+.st-border .two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: 100%;
+  position: relative;
+}
+.st-border .two::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed #888;
+  pointer-events: none;
+}
+.st-border .cp {
+  /* no border – the dashed pseudo-element above acts as the divider */
+  border: none;
+  padding: 0 6mm 0 6mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+}
+.st-border .cp + .cp {
+  border-left: none;
+  padding-left: 6mm;
+}
+
+/* ── Portrait: single copy with a box ── */
+.st-border.pt > div {
+  border: 1.5px solid #000;
+  padding: 6mm 8mm;
+  min-height: 270mm;
+  display: flex;
+  flex-direction: column;
+}
+.st-border .h4 {
+  border-bottom: none !important;
+  margin-bottom: 4px;
+}
+.sheet-foot {
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+/* Inline questions like 1. word 2. word 3. word */
+.q-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  padding-left: 16px;
+  margin: 3px 0;
+}
+.inline-item {
+  display: inline-flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+/* ---------- Inline editing – floating toolbar (legacy) ---------- */
+#fmt-toolbar { display: none !important; } /* replaced by ribbon */
+
+/* ═══════════════════════════════════════════════════════
+   WORD-RIBBON TOOLBAR
+   ═══════════════════════════════════════════════════════ */
+.preview-wrap {
+  position: relative;
+}
+
+.tb-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid var(--ac);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Separator */
+.tb-sep {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  margin: 0 4px;
+  align-self: center;
+}
+
+/* Toolbar button */
+.tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font: 13px/1 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+  margin: 0;
+}
+.tb-btn:hover {
+  background: rgba(31,78,95,0.08);
+  border-color: var(--line);
+  transform: none;
+}
+.tb-btn:active  { background: rgba(31,78,95,0.15); }
+.tb-btn.tb-active {
+  background: rgba(31,78,95,0.14);
+  border-color: var(--ac);
+  color: var(--ac);
+}
+
+/* Dropdowns inside toolbar */
+.tb-select {
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 12px 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+.tb-select:focus { border-color: var(--ac); }
+.tb-font-sel { width: 130px; }
+.tb-size-sel { width: 52px; }
+
+/* ── Color picker ── */
+.tb-color-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.tb-color-btn {
+  min-width: 32px;
+  flex-direction: column;
+  gap: 1px;
+}
+.tb-color-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  padding: 8px;
+  min-width: 160px;
+}
+.tb-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 24px);
+  gap: 3px;
+}
+.tb-swatch {
+  width: 24px;
+  height: 18px;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: transform 0.1s;
+}
+.tb-swatch:hover { transform: scale(1.2); border: none; }
+
+/* ── Table grid picker ── */
+.tb-table-pop {
+  min-width: 200px;
+  padding: 8px;
+}
+.tb-table-label {
+  font-size: 12px;
+  color: var(--mute);
+  margin-bottom: 6px;
+  text-align: center;
+}
+.tb-table-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 20px);
+  gap: 2px;
+}
+.tb-table-cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: background 0.08s, border-color 0.08s;
+}
+.tb-table-cell-on {
+  background: rgba(31,78,95,0.18);
+  border-color: var(--ac);
+}
+
+/* ── Table context (right-click) menu ── */
+.tb-ctx-menu {
+  position: absolute;
+  z-index: 300;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  padding: 4px 0;
+  min-width: 180px;
+}
+.tb-ctx-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 14px;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font: 13px 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  border-radius: 0;
+  margin: 0;
+  transition: background 0.1s;
+}
+.tb-ctx-menu button:hover { background: rgba(31,78,95,0.08); transform: none; }
+.tb-ctx-section {
+  font: 600 10px 'Nunito Sans', sans-serif;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 6px 14px 2px;
+}
+
+/* Editable blocks in the paper — now the whole .cp is editable */
+[data-src] {
+  border-radius: 2px;
+}
+
+/* The whole .cp (landscape column) or .sheet-body (portrait) is the editing surface */
+.cp[contenteditable],
+.sheet-body[contenteditable] {
+  cursor: text;
+  caret-color: #23262b;
+  /* Kill every possible focus indicator */
+  outline: none !important;
+  box-shadow: none !important;
+  border: inherit !important;
+}
+.cp[contenteditable]:focus,
+.sheet-body[contenteditable]:focus,
+.cp[contenteditable]:focus-within,
+.sheet-body[contenteditable]:focus-within,
+.cp[contenteditable]:focus-visible,
+.sheet-body[contenteditable]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: inherit !important;
+}
+/* Kill focus ring on every child element inside the editable paper */
+.cp[contenteditable] *,
+.sheet-body[contenteditable] * {
+  outline: none !important;
+}
+.cp[contenteditable] *:focus,
+.cp[contenteditable] *:focus-visible,
+.sheet-body[contenteditable] *:focus,
+.sheet-body[contenteditable] *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Tables inserted inline get nice borders */
+[data-src] table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 4px 0;
+}
+[data-src] table td,
+[data-src] table th {
+  border: 1px solid #000;
+  padding: 3px 6px;
+  min-width: 30px;
+}
+[data-src] table th {
+  background: #f0f0f0;
+  font-weight: 700;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Pasted / inserted images */
+.cp img, .sheet-body img {
+  max-width: 100%;
+  max-height: 80mm;
+  display: block;
+  margin: 4px auto;
+  cursor: default;
+}
+/* Image resize handle on selection */
+.cp img:focus, .sheet-body img:focus {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+
+/* Edit hint bar */
+.edit-hint {
+  font-size: 12px;
+  color: var(--mute);
+  padding: 4px 8px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: var(--card);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+.edit-hint kbd {
+  font: 11px ui-monospace, Consolas, monospace;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 0 4px;
+  color: var(--ink);
+}
+
+/* ---------- Hidden utility ---------- */
+[hidden] { display: none !important; }
+
+/* ---------- App Header / Nav ---------- */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.top nav { display: flex; gap: 6px; }
+.top button { margin: 0; }
+.brand { font: 700 18px Lora, serif; margin-right: auto; }
+
+/* ---------- Tabs ---------- */
+.tab.on { background: var(--ac); color: var(--acx); }
+
+/* ---------- Dashboard ---------- */
+.dash { max-width: 1100px; margin: 16px auto; padding: 0 16px; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.stat b { display: block; font: 700 26px Lora, serif; }
+.stat span { color: var(--mute); font-size: 13px; }
+
+/* ---------- History cards ---------- */
+.card {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+  transition: background 0.15s;
+}
+.card:hover { background: var(--card); }
+.card button { margin: 2px 0 2px 6px; }
+
+/* ---------- Chips ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 12.5px;
+  background: var(--card);
+}

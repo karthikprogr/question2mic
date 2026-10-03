@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Question Paper Formatter</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="stylesheet" href="style.css"></head><body>
+<header class="top noprint"><b class="brand">Question Paper Maker</b>
+ <nav><button id="tabD" class="tab on">Dashboard</button><button id="tabE" class="tab g">Editor</button></nav>
+ <button id="newp" class="g">+ New paper</button></header>
+<section id="viewD" class="dash noprint">
+ <h2>Overview</h2>
+ <div class="stats" id="stats"></div>
+ <div class="panel"><h2>Papers created</h2>
+  <div class="row"><input id="q" placeholder="Search by class, subject or exam" aria-label="Search papers"><select id="fc" aria-label="Filter by class"><option value="">All classes</option></select></div>
+  <div id="list"></div>
+  <button id="exp" class="g">Download backup</button><button id="impb" class="g">Restore backup</button><input type="file" id="imp" accept=".json" hidden>
+  <div class="s" id="hnote" style="margin-top:8px">History is saved in this web browser on this computer. Use Download backup to keep a copy or move it to another computer. Pictures and the logo are not saved.</div>
+ </div>
+</section>
+<div class="wrap" id="viewE" hidden>
+<div class="noprint">
+ <div class="panel"><h1>Paper formatter</h1>
+  <p class="s">Upload the teacher's Word file, fix the text, and print in the two-copy school format.</p>
+  <label for="up">1. Upload the paper: Word, PDF, photo, scan or handwritten</label>
+  <input type="file" id="up" accept=".docx,.txt,.md,.csv,.pdf,image/*" multiple>
+  <div class="s" style="margin-top:4px">For several photos or PDF pages of one paper, select them all together in page order.</div>
+  <div id="rmw" hidden><label for="rmode">Photo reading speed</label><select id="rmode"><option value="quick">Fast (a few seconds)</option><option value="default">Careful (slower, more exact)</option></select></div>
+  <button id="stop" class="g" hidden>Stop</button>
+  <div class="s" id="eng" style="margin-top:6px"></div><div class="s" id="note"></div>
+  <div id="ppw" hidden><label for="pp">Choose the paper to format</label><select id="pp"></select></div>
+  <label for="logo">School logo (optional)</label><input type="file" id="logo" accept="image/*">
+  <label for="pics">Pictures for [image] lines, in order (optional)</label><input type="file" id="pics" accept="image/*" multiple>
+ </div>
+ <div class="panel"><h2>2. Paper details</h2>
+  <label for="school">School name</label><input id="school" value="GAUTHAMI TECHNO SCHOOL">
+  <label for="campus">Campus</label><input id="campus" value="CHINTAL, HYDERABAD">
+  <div class="row"><div><label for="cls">Class</label><input id="cls" value="IV"></div><div><label for="sub">Subject</label><input id="sub" value="EVS"></div></div>
+  <label for="exam">Exam</label><input id="exam" value="SUMMATIVE ASSESSMENT – I">
+  <div class="row"><div><label for="marks">Marks</label><input id="marks" value="20M"></div><div><label for="time">Time</label><input id="time" value="1 Hr"></div></div>
+  <label for="ori">Page layout</label><select id="ori"><option value="auto" selected>Automatic (Class 1–3 portrait, 4–10 landscape)</option><option value="landscape">Always landscape</option><option value="portrait">Always portrait</option></select><div class="s" id="onote"></div>
+  <label for="pfont">Paper font</label><select id="pfont"></select><input id="pcustom" placeholder="Type the font name exactly as in Word" hidden>
+  <label for="pstyle">Paper style</label><select id="pstyle"><option value="classic">Classic (plain)</option><option value="box">Boxed header</option><option value="line">Lines under sections</option><option value="shade">Shaded sections</option></select>
+  <label for="apptheme">Screen theme</label><select id="apptheme"><option value="auto">Automatic</option><option value="light">Light</option><option value="dark">Dark</option></select>
+  <label for="fs">Text size</label><select id="fs"><option>10px</option><option>11px</option><option selected>12px</option><option>13px</option><option>14px</option></select>
+ </div>
+ <div class="panel"><h2>3. Print</h2>
+  <button id="print">Print / Save as PDF</button><button id="save">Save to history</button><button id="dl">Download .docx (Word)</button><button id="print2" class="g">Open in new tab to print</button>
+  <div class="s" id="hmsg"></div><div class="s" id="pnote" style="margin-top:8px">Choose <b>Save as PDF</b>, paper <b>A4</b>, margins <b>None</b>. Print double-sided, flip on the short edge.</div>
+ </div>
+</div>
+<div>
+ <div class="panel noprint"><h2>Questions (fix mistakes here)</h2>
+  <details><summary>How to write the questions</summary><pre>I. Choose the correct answer. 4 x 1 = 4M   (section line, marks go at the end)
+1. Which part of the plant makes food? ( )
+a) Root b) Stem c) Leaf d) Flower           (options on one line)
+A | B                                       (match table header)
+Horse | Hive                                (match table row)
+[image]                                     (picture goes here)
+[lines 2]                                   (2 answer lines)
+[page]                                      (force a new page; pages fill automatically)</pre></details>
+  <textarea id="txt" spellcheck="true"></textarea><div id="warn"></div>
+ </div>
+ <div class="sheetbox"><div id="out"></div></div>
+</div></div>
+<script src="app.js"></script></body></html>
