@@ -80,9 +80,15 @@ export default function FileUpload({ details, setDetails, setText, setLogo, setI
         setNote('Reading file...');
         let text;
         if (ext(f) === 'docx') {
-          text = (await window.mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() })).value;
+          // Use our custom XML extractor that preserves OMML equations as MathML
+          const extracted = await extractDocxText(await f.arrayBuffer());
+          text = extracted;
+          // CRITICAL: Store math map globally IMMEDIATELY so blocks() can find it
+          window.__mathStore = extracted.__mathStore || {};
+          console.log('[FileUpload] Set window.__mathStore with', Object.keys(window.__mathStore).length, 'equations');
         } else {
           text = await f.text();
+          window.__mathStore = {}; // Clear for non-docx files
         }
         const ps = splitPapers(text);
         setPapers(ps);
@@ -294,4 +300,143 @@ function cropLeftHalfIfTwoColumn(file) {
     img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
     img.src = url;
   });
+}
+
+/**
+ * Custom docx text extractor that preserves OMML equations as MathML.
+ *
+ * Reads document.xml from the docx zip, converts each <m:oMath> block
+ * to MathML HTML using an XSLT processor (browser DOMParser + XSLTProcessor),
+ * and returns a structured array of paragraph objects:
+ *   { type: 'text', content: string }
+ *   { type: 'math', mathml: string }   ← rendered by MathJax
+ *
+ * Falls back to plain-text extraction if XSLT is unavailable.
+ */
+async function extractDocxText(arrayBuffer) {
+  console.log('[DOCX] Starting extraction...');
+  if (!window.JSZip) throw new Error('JSZip not loaded');
+
+  const zip     = await window.JSZip.loadAsync(arrayBuffer);
+  const xmlFile = zip.file('word/document.xml');
+  if (!xmlFile) {
+    console.log('[DOCX] No document.xml found, using mammoth fallback');
+    return (await window.mammoth.extractRawText({ arrayBuffer })).value;
+  }
+
+  const xmlText = await xmlFile.async('string');
+  console.log('[DOCX] document.xml loaded, length:', xmlText.length);
+
+  // ── OMML → MathML conversion via XSLT ───────────────────────────────
+  let xsltProcessor = null;
+  try {
+    // Load bundled OMML2MML stylesheet (served from /public)
+    console.log('[DOCX] Fetching OMML2MML.XSL stylesheet...');
+    const xslResp = await fetch('/OMML2MML.XSL').catch(() => null);
+    if (xslResp && xslResp.ok) {
+      const xslText  = await xslResp.text();
+      const xslDoc   = new DOMParser().parseFromString(xslText, 'application/xml');
+      xsltProcessor  = new XSLTProcessor();
+      xsltProcessor.importStylesheet(xslDoc);
+      console.log('[DOCX] XSLT processor initialized successfully');
+    } else {
+      console.warn('[DOCX] Could not load OMML2MML.XSL, equations will be text-only');
+    }
+  } catch (e) { 
+    console.error('[DOCX] XSLT initialization failed:', e);
+  }
+
+  // ── Fix encoding artifacts ───────────────────────────────────────────
+  const fixEnc = (s) => s
+    .replace(/&gt;/g, '>').replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+    .replace(/&#x([0-9A-Fa-f]+);/g, (_, h) => {
+      try { return String.fromCodePoint(parseInt(h, 16)); } catch { return _; }
+    });
+
+  // ── OMML element → MathML string ────────────────────────────────────
+  const ommlToMathML = (ommlXml, debugIndex) => {
+    if (!xsltProcessor) {
+      console.warn(`[DOCX] Equation ${debugIndex}: XSLT processor not available`);
+      return null;
+    }
+    try {
+      // Wrap in a proper XML document with OOXML namespace declarations
+      const wrapped = `<?xml version="1.0"?>
+<root xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+      xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  ${ommlXml}
+</root>`;
+      const srcDoc   = new DOMParser().parseFromString(wrapped, 'application/xml');
+      const result   = xsltProcessor.transformToFragment(srcDoc, document);
+      const tmp      = document.createElement('div');
+      tmp.appendChild(result);
+      // Return the first <math> element's outer HTML
+      const math = tmp.querySelector('math');
+      if (math) {
+        console.log(`[DOCX] Equation ${debugIndex}: Converted to MathML (${math.outerHTML.length} chars)`);
+        return math.outerHTML;
+      } else {
+        console.warn(`[DOCX] Equation ${debugIndex}: No <math> element found after XSLT`);
+        return null;
+      }
+    } catch (e) {
+      console.error(`[DOCX] Equation ${debugIndex}: XSLT transformation failed:`, e);
+      return null;
+    }
+  };
+
+  // ── Process paragraphs ───────────────────────────────────────────────
+  // Each paragraph becomes: [textPart, mathPart, textPart, mathPart, ...]
+  // We encode math as §MATH§...§/MATH§ placeholders in the text output
+  // so the existing text pipeline doesn't mangle them.
+  const lines = [];
+  const mathStore = {};   // id → mathml string
+  let mathId = 0;
+
+  const paraRegex = /<w:p[ >][\s\S]*?<\/w:p>/g;
+  let pm;
+  while ((pm = paraRegex.exec(xmlText)) !== null) {
+    const para = pm[0];
+    let lineText = '';
+    let pos = 0;
+
+    // Walk the para matching either a w:t, m:t, or a full m:oMath block
+    const tokenRe = /(<m:oMath>[\s\S]*?<\/m:oMath>)|<(?:w:t|m:t)(?:\s[^>]*)?>([^<]*)<\/(?:w:t|m:t)>/g;
+    let tm;
+    while ((tm = tokenRe.exec(para)) !== null) {
+      if (tm[1]) {
+        // It's a full OMML equation block
+        const id = `__MATH_${mathId}__`;
+        const mathml = ommlToMathML(tm[1], mathId);
+        if (mathml) {
+          mathStore[id] = mathml;
+          lineText += id;
+          mathId++;
+        } else {
+          // Fallback: extract m:t text
+          const mt = [...tm[1].matchAll(/<m:t[^>]*>([^<]*)<\/m:t>/g)];
+          const fallbackText = mt.map(x => x[1]).join('');
+          console.log(`[DOCX] Equation ${mathId}: Using fallback text: "${fallbackText}"`);
+          lineText += fallbackText;
+        }
+      } else if (tm[2] !== undefined) {
+        lineText += tm[2];
+      }
+    }
+
+    lineText = fixEnc(lineText.replace(/\s+/g, ' ').trim());
+    if (lineText) lines.push(lineText);
+    else lines.push('');
+  }
+
+  const rawText = lines.join('\n');
+  console.log(`[DOCX] Extraction complete: ${lines.length} lines, ${Object.keys(mathStore).length} equations`);
+  console.log('[DOCX] Math store keys:', Object.keys(mathStore));
+
+  // Return both the text and the math store so the caller can use them
+  // We attach mathStore to the returned string as a non-enumerable property
+  const result = Object.assign(rawText, { __mathStore: mathStore });
+  return result;
 }

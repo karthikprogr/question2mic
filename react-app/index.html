@@ -8,6 +8,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- MathJax v3: renders MathML (converted from OMML) as proper math notation -->
+    <script>
+      window.MathJax = {
+        loader: { load: ['input/mml', 'output/chtml'] },
+        mml: {
+          parseAs: 'html'  // Parse MathML from HTML string
+        },
+        options: { 
+          skipHtmlTags: ['script','noscript','style','textarea','pre'],
+          processHtmlClass: 'math-inline|math-block'  // Process elements with these classes
+        },
+        startup: { 
+          typeset: false,  // Don't auto-typeset on load - we'll call typesetPromise manually
+          ready: () => {
+            console.log('[MathJax] Initialization complete');
+            window.MathJax.startup.defaultReady();
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js" async></script>
   </head>
   <body>
     <div id="root"></div>

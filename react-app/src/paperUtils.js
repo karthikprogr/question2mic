@@ -1,5 +1,5 @@
-/**
- * paperUtils.js – all pure formatting / parsing logic
+﻿/**
+ * paperUtils.js â€“ all pure formatting / parsing logic
  * (ported faithfully from the original app.js)
  */
 
@@ -28,7 +28,7 @@ export const e = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&l
 export const fx = s => e(s).replace(/\( \)/g, '(\u2003\u2003)');
 
 const RM = /^(?=[IVXL])(X{0,3})(IX|IV|V?I{1,3})([.):\s]|\s*$)/i;
-const MK = /(\d+\s*[x×*XcC]\s*\d+\s*=\s*\d+\s*M?|\d+\s*M)\s*[।.\s]*$/i;
+const MK = /(\d+\s*[xÃ—*XcC]\s*\d+\s*=\s*\d+\s*M?|\d+\s*M)\s*[à¥¤.\s]*$/i;
 const PART = /^Part\s*-?\s*[A-Za-z]\b/i;
 const SCH = /^\s*[A-Z][A-Z .&'-]{4,60}\b(SCHOOL|COLLEGE)\s*$/;
 
@@ -41,24 +41,24 @@ export const ROM = {
 export function clean(raw) {
   // Auto-correct common OCR corruptions on Sanskrit/Devanagari papers
   let text = String(raw || '')
-    .replace(/^गा\s+/gm, 'III. ')
+    .replace(/^à¤—à¤¾\s+/gm, 'III. ')
     .replace(/^TTT\s+/gm, 'III. ')
     .replace(/^1\.\s+VII\b/gm, 'VII.')
     .replace(/^1\.\s+VI\b/gm, 'VI.')
     .replace(/^1\.\s+IV\b/gm, 'IV.')
-    .replace(/\|\s*2x3=6/gi, '   2 × 3 = 6')
-    .replace(/\|\s*3x1=3/gi, '   3 × 1 = 3')
-    .replace(/\|\s*3x2=6/gi, '   3 × 2 = 6')
-    .replace(/\b2८3\s*=\s*6/gi, '2 × 3 = 6')
-    .replace(/\b32\s*=\s*6/gi, '3 × 2 = 6')
-    .replace(/\b3c1\s*=\s*3/gi, '3 × 1 = 3')
-    .replace(/\bREA\b/g, '2 × 2 = 4')
+    .replace(/\|\s*2x3=6/gi, '   2 Ã— 3 = 6')
+    .replace(/\|\s*3x1=3/gi, '   3 Ã— 1 = 3')
+    .replace(/\|\s*3x2=6/gi, '   3 Ã— 2 = 6')
+    .replace(/\b2à¥®3\s*=\s*6/gi, '2 Ã— 3 = 6')
+    .replace(/\b32\s*=\s*6/gi, '3 Ã— 2 = 6')
+    .replace(/\b3c1\s*=\s*3/gi, '3 Ã— 1 = 3')
+    .replace(/\bREA\b/g, '2 Ã— 2 = 4')
     // Fix jammed header lines like "80MMaximum Time:" or "80MTime:"
     .replace(/(\d+M)(Maximum\s+Time)/gi, '$1  $2')
     .replace(/(\d+M)(Time\s*:)/gi, '$1  $2')
     .replace(/(Maximum\s+Marks\s*:\s*\d+M)(Maximum\s+Time)/gi, '$1  $2');
 
-  // ── Stitch broken equation fragments ──────────────────────────────────
+  // â”€â”€ Stitch broken equation fragments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Word equations (OMML) are dropped by mammoth leaving blank lines.
   // Pattern: short non-heading line + 2+ blank lines + continuation fragment.
   // We mark the gap with [?] and join the pieces into one question line.
@@ -78,15 +78,15 @@ export function clean(raw) {
     const isFragmentLine = trimmed.length < 70 &&
       !/^\d+[.)]\s/.test(trimmed) &&
       !/^[IVXLCDM]+[.):\s]/i.test(trimmed) &&
-      !/^Section\s*[-–]?\s*[A-Z]\b/i.test(trimmed) &&
-      !/^Part\s*[-–]?\s*[A-Z]\b/i.test(trimmed) &&
+      !/^Section\s*[-â€“]?\s*[A-Z]\b/i.test(trimmed) &&
+      !/^Part\s*[-â€“]?\s*[A-Z]\b/i.test(trimmed) &&
       !/^(Maximum|Marks|Sub|Time|Class)\s*:/i.test(trimmed);
 
     const isContinuationLine = nextLine.length > 0 &&
       !/^\d+[.)]\s/.test(nextLine) &&
       !/^[IVXLCDM]+[.):\s]/i.test(nextLine) &&
-      !/^Section\s*[-–]?\s*[A-Z]\b/i.test(nextLine) &&
-      // Must start with lowercase or with specific continuation words — not a fresh imperative
+      !/^Section\s*[-â€“]?\s*[A-Z]\b/i.test(nextLine) &&
+      // Must start with lowercase or with specific continuation words â€” not a fresh imperative
       (/^[a-z(]/.test(nextLine) || /^(then|and|prove\s+that|to\s+coincide|or\s+)\b/i.test(nextLine));
 
     if (isFragmentLine && blanks >= 2 && isContinuationLine) {
@@ -116,7 +116,7 @@ export function clean(raw) {
 
     const isRoman = RM.test(l);
     // Section-A / Section-B / Section-C style headings (Maths/Junior College format)
-    const isSectionHead = /^Section\s*[-–]?\s*[A-Z]\b/i.test(l);
+    const isSectionHead = /^Section\s*[-â€“]?\s*[A-Z]\b/i.test(l);
     if (isRoman || PART.test(l) || isSectionHead) {
       inT = false;
       const mk = l.match(MK), t = (mk ? l.slice(0, mk.index) : l).trim().replace(/\s+/g, ' ');
@@ -145,9 +145,58 @@ export function clean(raw) {
 
 /** Turn text into HTML block strings */
 export function blocks(txt, images, lineOffset = 0) {
+  console.log('[blocks] Starting with text length:', txt.length);
+  console.log('[blocks] window.__mathStore available:', !!window.__mathStore);
+  console.log('[blocks] Math store keys:', window.__mathStore ? Object.keys(window.__mathStore) : 'none');
+  
   const B = []; let cur = '', hd = false, tbl = null, tblSrc = -1, mi = 0, ii = 0;
-  let curSrc = -1; // source line index of the block being built
+  let curSrc = -1;
   const push = () => { if (cur) { B.push(cur); cur = ''; curSrc = -1; } };
+
+  // Substitute __MATH_n__ placeholders with actual MathML from window.__mathStore
+  const subMath = (s) => {
+    if (!s.includes('__MATH_')) return s;
+    return s.replace(/__MATH_(\d+)__/g, (match, id) => {
+      const store = window.__mathStore || {};
+      const key = `__MATH_${id}__`;
+      const mathml = store[key];
+      if (!mathml) {
+        console.warn(`[subMath] Placeholder ${key} found but no MathML in store`);
+        return match; // Keep the placeholder visible for debugging
+      }
+      console.log(`[subMath] Substituting ${key} with MathML (${mathml.length} chars)`);
+      // Inline MathML wrapped in a span so it flows with text
+      return `<span class="math-inline">${mathml}</span>`;
+    });
+  };
+  
+  // Enhanced math handling functions to work with HTML escaping
+  const MATH_TEMP_PREFIX = '___MATHPLACEHOLDER___';
+  const mathTempStore = {};
+  
+  const prepMath = (s) => {
+    if (!s || !s.includes('__MATH_')) return s;
+    return s.replace(/__MATH_(\d+)__/g, (match, id) => {
+      const store = window.__mathStore || {};
+      const key = `__MATH_${id}__`;
+      const mathml = store[key];
+      if (!mathml) return match;
+      const tempKey = `${MATH_TEMP_PREFIX}${id}${MATH_TEMP_PREFIX}`;
+      mathTempStore[tempKey] = mathml;
+      return tempKey;
+    });
+  };
+  
+  const restoreMath = (s) => {
+    if (!s || !s.includes(MATH_TEMP_PREFIX)) return s;
+    return s.replace(new RegExp(`${MATH_TEMP_PREFIX}(\\d+)${MATH_TEMP_PREFIX}`, 'g'), (match, id) => {
+      const mathml = mathTempStore[match];
+      if (!mathml) return match;
+      return `<span class="math-inline">${mathml}</span>`;
+    });
+  };
+  
+  const fxm = (s) => restoreMath(fx(prepMath(s)));
   const fl = () => {
     if (tbl !== null) {
       if (!hd) push();
@@ -166,7 +215,7 @@ export function blocks(txt, images, lineOffset = 0) {
     const mk = l.match(MK);
     let isH = PART.test(l);
     // Section-A / Section-B style (Maths / Junior College format)
-    if (!isH && /^Section\s*[-–]?\s*[A-Z]\b/i.test(l)) isH = true;
+    if (!isH && /^Section\s*[-â€“]?\s*[A-Z]\b/i.test(l)) isH = true;
     if (!isH && hm) {
       const romanStr = hm[1].toUpperCase();
       if (ROM[romanStr]) {
@@ -182,10 +231,10 @@ export function blocks(txt, images, lineOffset = 0) {
     if (isH) {
       fl();
       let t = (mk ? l.slice(0, mk.index) : l).trim();
-      t = t.replace(/\s*\|\s*$/, ' ।').trim();
-      const mm = mk ? mk[1].replace(/\s*[x×*XcC]\s*/i, ' × ').replace(/\s*=\s*/, ' = ').replace(/\s*(M?)$/i, '$1').trim() : '';
+      t = t.replace(/\s*\|\s*$/, ' à¥¤').trim();
+      const mm = mk ? mk[1].replace(/\s*[xÃ—*XcC]\s*/i, ' Ã— ').replace(/\s*=\s*/, ' = ').replace(/\s*(M?)$/i, '$1').trim() : '';
       push();
-      cur = `<div class="sec" data-src="${srcIdx}" contenteditable="true"><span>${e(t)}</span><span>${e(mm)}</span></div>`;
+      cur = `<div class="sec" data-src="${srcIdx}" contenteditable="true"><span>${restoreMath(e(prepMath(t)))}</span><span>${e(mm)}</span></div>`;
       curSrc = srcIdx;
       hd = true; return;
     }
@@ -205,7 +254,7 @@ export function blocks(txt, images, lineOffset = 0) {
     }
     fl();
 
-    // Multiple inline numbered questions on one line: e.g. 1. गुरुः   2. सागरः   3. छात्रः
+    // Multiple inline numbered questions on one line: e.g. 1. à¤—à¥à¤°à¥à¤ƒ   2. à¤¸à¤¾à¤—à¤°à¤ƒ   3. à¤›à¤¾à¤¤à¥à¤°à¤ƒ
     const inlineItems = l.split(/\s{2,}(?=\d+[.)]\s*)/).filter(Boolean);
     if (inlineItems.length >= 2 && inlineItems.every(it => /^\d+[.)]/.test(it.trim()))) {
       if (!hd) push();
@@ -231,7 +280,9 @@ export function blocks(txt, images, lineOffset = 0) {
       curSrc = srcIdx;
     } else if ((m = l.match(/^(\d+[.)]|[a-jA-J][.)])\s+(.*)$/))) {
       if (!hd) push();
-      cur += `<div class="q" data-src="${srcIdx}" contenteditable="true"><span class="n">${m[1]}</span><span>${fx(m[2])}</span></div>`;
+      // Substitute __MATH_n__ placeholders with actual MathML
+      const body = fxm(m[2]);
+      cur += `<div class="q" data-src="${srcIdx}" contenteditable="true"><span class="n">${m[1]}</span><span>${body}</span></div>`;
       curSrc = srcIdx;
     } else if ((m = l.match(/[^()]+?\( \)/g)) && m.join('').length >= l.length - 1) {
       if (!hd) push();
@@ -239,7 +290,7 @@ export function blocks(txt, images, lineOffset = 0) {
       curSrc = srcIdx;
     } else {
       if (!hd) push();
-      cur += `<div class="q" data-src="${srcIdx}" contenteditable="true"><span>${fx(l)}</span></div>`;
+      cur += `<div class="q" data-src="${srcIdx}" contenteditable="true"><span>${fxm(l)}</span></div>`;
       curSrc = srcIdx;
     }
     hd = false;
@@ -309,7 +360,7 @@ export function sheetHtml(content, pt, pstyle, pfont, pcustom, fs) {
   const fs2 = fs || '12px';
   const stk = fstack(pfont, pcustom);
   const sc = `st-${pstyle}" style="font-family:${stk};font-size:${fs2}`;
-  // Footer (page number) only on portrait border style – never on landscape copies
+  // Footer (page number) only on portrait border style â€“ never on landscape copies
   const foot = (pstyle === 'border' && pt) ? '<div class="sheet-foot">0</div>' : '';
   if (pt) return `<div class="sheet pt ${sc}"><div>${content}${foot}</div></div>`;
   return `<div class="sheet ${sc}"><div class="two"><div class="cp">${content}</div><div class="cp">${content}</div></div></div>`;
@@ -353,18 +404,18 @@ export function splitPapers(t) {
     });
     if (paper) p.exam = (p.exam || '') + ' (' + paper + ')';
     p.body = ch.slice(1 + used).join('\n');
-    p.label = (k + 1) + '. ' + (p.cls ? 'Class ' + p.cls + ' – ' : '') + (p.sub || 'Paper') + (paper ? ' – ' + paper : '');
+    p.label = (k + 1) + '. ' + (p.cls ? 'Class ' + p.cls + ' â€“ ' : '') + (p.sub || 'Paper') + (paper ? ' â€“ ' + paper : '');
     return p;
   });
 
-  // ── De-duplicate columns from two-column Word documents ─────────────────
+  // â”€â”€ De-duplicate columns from two-column Word documents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   //
   // A two-column Word document printed in landscape (two-copy format) is read
   // by mammoth column by column. For a 2-page doc it comes out as:
-  //   [block A] left-col page 1  → school name detected → paper 0
-  //   [block B] right-col page 1 → school name detected → paper 1  (duplicate of A)
-  //   [block C] left-col page 2  → no school name → appended to paper 1's body
-  //   [block D] right-col page 2 → no school name → also appended to paper 1's body
+  //   [block A] left-col page 1  â†’ school name detected â†’ paper 0
+  //   [block B] right-col page 1 â†’ school name detected â†’ paper 1  (duplicate of A)
+  //   [block C] left-col page 2  â†’ no school name â†’ appended to paper 1's body
+  //   [block D] right-col page 2 â†’ no school name â†’ also appended to paper 1's body
   //
   // Strategy:
   //   1. Group consecutive papers that share the same school+sub+cls as one
@@ -412,7 +463,7 @@ export function splitPapers(t) {
     return {
       ...base,
       body: mergedLines.join('\n'),
-      label: (gi + 1) + '. ' + (base.cls ? 'Class ' + base.cls + ' – ' : '') +
+      label: (gi + 1) + '. ' + (base.cls ? 'Class ' + base.cls + ' â€“ ' : '') +
              (base.sub || 'Paper'),
     };
   });
@@ -446,7 +497,7 @@ export function takeHeader(t) {
         continue;
       }
       // Check for Exam Name like UNIT - II or Summative Assessment
-      if (/^(unit\s*[-–]\s*[ivx\d]+|summative|formative|term|annual|half\s*yearly|pre-?board)/i.test(x) && !d.exam) {
+      if (/^(unit\s*[-â€“]\s*[ivx\d]+|summative|formative|term|annual|half\s*yearly|pre-?board)/i.test(x) && !d.exam) {
         d.exam = x.trim();
         continue;
       }
@@ -542,3 +593,5 @@ Reply with plain text only, in exactly this format:
 - Where a diagram or picture is drawn, write [image] on its own line.
 - Where blank answer lines are drawn, write [lines 2] using the number of lines.
 Keep Hindi, Sanskrit, Telugu or any other script exactly as written, in its own script. Copy the wording exactly, including spelling mistakes. Write [?] for any word you cannot read. No comments, no markdown.`;
+
+

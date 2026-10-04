@@ -99,10 +99,25 @@ V. Answer the following. 2 x 2 = 4M
 2. Write two uses of water.
 [lines 2]`;
 
+export const DEFAULT_DETAILS = {
+  school: 'GAUTHAMI TECHNO SCHOOL',
+  campus: 'CHINTAL, HYDERABAD',
+  cls: '',
+  sub: '',
+  exam: '',
+  marks: '',
+  time: '',
+  ori: 'auto',
+  pfont: 'Cambria',
+  pcustom: '',
+  pstyle: 'classic',
+  fs: '12px',
+};
+
 export default function App() {
   const [view, setView] = useState('E'); // 'D' = Dashboard, 'E' = Editor
-  const [details, setDetails] = useState(SANSKRIT_PAPER_DETAILS);
-  const [text, setText] = useState(SANSKRIT_PAPER_TEXT);
+  const [details, setDetails] = useState(DEFAULT_DETAILS);
+  const [text, setText] = useState('');
   const [logo, setLogo] = useState('');
   const [images, setImages] = useState([]);
   const [curId, setCurId] = useState(null);
@@ -151,6 +166,7 @@ export default function App() {
 
   const newPaper = useCallback(() => {
     setCurId(null);
+    setDetails(DEFAULT_DETAILS);
     setText('');
     setView('E');
   }, []);

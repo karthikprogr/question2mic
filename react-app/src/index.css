@@ -491,10 +491,9 @@ details pre { white-space: pre-wrap; margin: 6px 0; font-size: 12px; }
 .sheet-body[contenteditable] {
   cursor: text;
   caret-color: #23262b;
-  /* Kill every possible focus indicator */
   outline: none !important;
   box-shadow: none !important;
-  border: inherit !important;
+  /* Do NOT reset border — .cp + .cp needs its dashed left border */
 }
 .cp[contenteditable]:focus,
 .sheet-body[contenteditable]:focus,
@@ -504,7 +503,6 @@ details pre { white-space: pre-wrap; margin: 6px 0; font-size: 12px; }
 .sheet-body[contenteditable]:focus-visible {
   outline: none !important;
   box-shadow: none !important;
-  border: inherit !important;
 }
 /* Kill focus ring on every child element inside the editable paper */
 .cp[contenteditable] *,
@@ -536,6 +534,26 @@ details pre { white-space: pre-wrap; margin: 6px 0; font-size: 12px; }
   font-weight: 700;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+}
+
+/* Inline math (MathML rendered by MathJax) */
+.math-inline {
+  display: inline;
+  vertical-align: middle;
+  font-size: 1em;
+  line-height: 1;
+}
+.math-inline math { display: inline; }
+/* Display/block math (equation on its own line) */
+.math-block {
+  display: block;
+  text-align: center;
+  margin: 4px 0;
+  overflow-x: auto;
+}
+/* MathJax sizing inside paper — match paper font size */
+.cp mjx-container, .sheet-body mjx-container {
+  font-size: 1em !important;
 }
 
 /* Pasted / inserted images */

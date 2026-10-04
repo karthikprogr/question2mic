@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+﻿import { useEffect, useRef, useCallback, useState } from 'react';
 import { blocks, buildHead, isPortrait, fstack } from '../paperUtils.js';
 import Toolbar from './Toolbar.jsx';
 
@@ -154,6 +154,71 @@ export default function PaperPreview({ text, details, logo, images, setText }) {
       warnRef.current.textContent = bad.length
         ? 'Page ' + bad.join(', ') + ' overflows. Reduce the text size.' : '';
     }
+
+    // Fix MathML namespace and trigger MathJax rendering
+    // When MathML is inserted via innerHTML, it gets created in HTML namespace
+    // We need to recreate it in the proper MathML namespace for MathJax to process it
+    const fixMathMLAndTypeset = async () => {
+      if (!outRef.current) return;
+
+      // Step 1: Fix all <math> elements to use proper MathML namespace
+      const htmlMathElements = outRef.current.querySelectorAll('math');
+      console.log('[PaperPreview] Found', htmlMathElements.length, 'math elements to fix');
+      
+      htmlMathElements.forEach(mathEl => {
+        try {
+          // Create a proper MathML element with namespace
+          const parser = new DOMParser();
+          const mathDoc = parser.parseFromString(
+            `<math xmlns="http://www.w3.org/1998/Math/MathML">${mathEl.innerHTML}</math>`,
+            'application/xml'
+          );
+          
+          const properMathEl = document.importNode(mathDoc.documentElement, true);
+          
+          // Replace the HTML-namespaced element with the MathML-namespaced one
+          mathEl.parentNode.replaceChild(properMathEl, mathEl);
+        } catch (err) {
+          console.error('[PaperPreview] Failed to fix math element:', err);
+        }
+      });
+
+      // Step 2: Wait for MathJax and typeset
+      if (!window.MathJax) {
+        console.warn('[PaperPreview] MathJax not loaded yet');
+        return;
+      }
+      
+      // Wait for MathJax.startup.promise if it exists (v3 initialization)
+      if (window.MathJax.startup && window.MathJax.startup.promise) {
+        await window.MathJax.startup.promise;
+      }
+      
+      if (!window.MathJax.typesetPromise) {
+        console.warn('[PaperPreview] MathJax.typesetPromise not available');
+        return;
+      }
+      
+      // Give DOM a moment to settle after namespace fixes
+      setTimeout(async () => {
+        console.log('[PaperPreview] Calling MathJax.typesetPromise()...');
+        const mathElements = outRef.current.querySelectorAll('math');
+        console.log('[PaperPreview] Typesetting', mathElements.length, 'MathML elements');
+        
+        try {
+          await window.MathJax.typesetPromise([outRef.current]);
+          console.log('[PaperPreview] MathJax typesetting complete');
+          
+          // Log how many mjx-container elements were created (MathJax output)
+          const mjxContainers = outRef.current.querySelectorAll('mjx-container');
+          console.log('[PaperPreview] Created', mjxContainers.length, 'rendered math containers');
+        } catch (err) {
+          console.error('[PaperPreview] MathJax typesetting failed:', err);
+        }
+      }, 100);
+    };
+    
+    fixMathMLAndTypeset();
   }, [text, details, logo, images]);
 
   // ── Event delegation on #out ───────────────────────────────────────────
